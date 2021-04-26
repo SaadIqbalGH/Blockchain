@@ -1,1 +1,1 @@
-# Create a contract and migrate it on Ganache Simulator
+### Create a contract and migrate it on Ganache Simulator
