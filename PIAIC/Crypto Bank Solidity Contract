@@ -1,0 +1,85 @@
+//SPDX-License-Identifier: Undefined
+pragma solidity ^0.8.0;
+
+contract CryptoBank {
+    uint8 private clientCount;
+    mapping (address => uint) balances;
+    address payable public owner;
+
+// 1- The owner can start the bank with initial deposit/capital in ether (min 50 eths)
+
+    constructor() payable {
+        require(msg.value >= 50 ether, "min 50 ether initial funding required");
+/* Setting the owner to the creator of this contract */
+        owner =payable(msg.sender);
+        clientCount = 0;
+    }
+
+// 2- Only the owner can close the bank. Upon closing the balance should return to the Owner
+
+    event BankClosed(string message);
+    
+    function CloseBank() public {
+            if (msg.sender == owner){
+            emit BankClosed("Bank is permenantly closed by the owner - All deposits reverted back to the owner");
+            selfdestruct(owner);
+            }
+    }
+
+// 3- Anyone can open an account in the bank for Account opening they need to deposit ether with address
+// 7- First 5 accounts will get a bonus of 1 ether in bonus
+
+    function _OpenAccout() public payable returns (uint) {
+        require(msg.value > 0, 'Please eneter deposit amount to open account');
+        if (clientCount < 5) {
+            clientCount++;
+            balances[msg.sender] = msg.value + 1 ether;
+        }
+        return balances[msg.sender];
+    }
+
+// 4- Bank will maintain balances of accounts
+// 5- Anyone can deposit in the bank
+
+    event depositDone(string message, uint Amount, address accountAddress);
+
+    function Deposit() public payable returns (uint) {
+        require(msg.value > 0, 'Please eneter deposit amount');
+        balances[msg.sender] += msg.value;
+        emit depositDone("A deposit was done:", msg.value, msg.sender);
+        return balances[msg.sender];
+    }
+    
+    
+
+// 6- Only valid account holders can deposit
+
+    event withdrawalDone(string message, address accountAddress, uint amount);
+    
+    function Withdraw(uint withdrawAmount) public payable returns (uint remainingBal) {
+        // Checking enough balance available, otherwise will return balance
+        if (withdrawAmount <= balances[msg.sender]) {
+            balances[msg.sender] -= withdrawAmount;
+            payable(msg.sender).transfer(withdrawAmount);
+        }
+        emit withdrawalDone("A withdrawal was done", msg.sender, withdrawAmount);
+        return balances[msg.sender];
+    }
+
+// 8- Account holder can inquiry balance
+    function CustomerBalance() public view returns (uint) {
+        return balances[msg.sender];
+    }
+
+/* Only owner can chech the  balance of the Crypto Bank contract */
+    function DepositsBalance() public view returns (uint) {
+        return address(this).balance;
+    }
+    
+// The depositor can request for closing an account 
+
+    function UserClosingRequest() public view returns (string memory, address, uint8) {
+        return ("Please close my bank account. User account Address and Id:" , msg.sender, clientCount);
+    }
+
+}
