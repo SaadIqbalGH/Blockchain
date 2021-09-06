@@ -10,9 +10,6 @@ pragma solidity ^0.8.0;
 - Send events on function call.
 **/
 
-
-
-
 contract Bio_Data_Storage {
     
     struct BioData {
